@@ -49,7 +49,7 @@ pub const ValidationError = enum {
 // Validation result structure
 pub const ValidationResult = struct {
     valid: bool,
-    error: ValidationError,
+    validation_error: ValidationError,
     position: usize,
     
     pub inline fn isSuccess(self: ValidationResult) bool {
@@ -57,7 +57,7 @@ pub const ValidationResult = struct {
     }
     
     pub inline fn getError(self: ValidationResult) ?ValidationError {
-        return if (self.valid) null else self.error;
+        return if (self.valid) null else self.validation_error;
     }
     
     pub inline fn getPosition(self: ValidationResult) usize {
@@ -70,24 +70,24 @@ pub const JsonValidator = struct {
     // Validate JSON string before parsing (prevents most errors)
     pub inline fn validateInput(json_string: []const u8) ValidationResult {
         if (json_string.len == 0) {
-            return ValidationResult{ .valid = false, .error = ValidationError.EmptyInput, .position = 0 };
+            return ValidationResult{ .valid = false, .validation_error = ValidationError.EmptyInput, .position = 0 };
         }
         
         if (json_string.len > config.max_file_size) {
-            return ValidationResult{ .valid = false, .error = ValidationError.InputTooLarge, .position = 0 };
+            return ValidationResult{ .valid = false, .validation_error = ValidationError.InputTooLarge, .position = 0 };
         }
         
         // Check for valid JSON start
         var pos: usize = 0;
-        while (pos < json_string.len and std.mem.isWhitespace(json_string[pos])) : (pos += 1) {}
+        while (pos < json_string.len and std.ascii.isWhitespace(json_string[pos])) : (pos += 1) {}
         
         if (pos >= json_string.len) {
-            return ValidationResult{ .valid = false, .error = ValidationError.WhitespaceOnly, .position = pos };
+            return ValidationResult{ .valid = false, .validation_error = ValidationError.WhitespaceOnly, .position = pos };
         }
         
         const first_char = json_string[pos];
         if (first_char != '{' and first_char != '[') {
-            return ValidationResult{ .valid = false, .error = ValidationError.InvalidStart, .position = pos };
+            return ValidationResult{ .valid = false, .validation_error = ValidationError.InvalidStart, .position = pos };
         }
         
         // Quick structural validation
@@ -122,14 +122,14 @@ pub const JsonValidator = struct {
                     if (!in_string) {
                         nesting_depth += 1;
                         if (nesting_depth > config.max_nesting_depth) {
-                            return ValidationResult{ .valid = false, .error = ValidationError.NestingTooDeep, .position = pos };
+                            return ValidationResult{ .valid = false, .validation_error = ValidationError.NestingTooDeep, .position = pos };
                         }
                     }
                 },
                 '}', ']' => {
                     if (!in_string) {
                         if (nesting_depth == 0) {
-                            return ValidationResult{ .valid = false, .error = ValidationError.UnmatchedClosing, .position = pos };
+                            return ValidationResult{ .valid = false, .validation_error = ValidationError.UnmatchedClosing, .position = pos };
                         }
                         nesting_depth -= 1;
                     }
@@ -141,14 +141,14 @@ pub const JsonValidator = struct {
         }
         
         if (in_string) {
-            return ValidationResult{ .valid = false, .error = ValidationError.UnterminatedString, .position = pos };
+            return ValidationResult{ .valid = false, .validation_error = ValidationError.UnterminatedString, .position = pos };
         }
         
         if (nesting_depth != 0) {
-            return ValidationResult{ .valid = false, .error = ValidationError.UnmatchedOpening, .position = pos };
+            return ValidationResult{ .valid = false, .validation_error = ValidationError.UnmatchedOpening, .position = pos };
         }
         
-        return ValidationResult{ .valid = true, .error = ValidationError.None, .position = pos };
+        return ValidationResult{ .valid = true, .validation_error = ValidationError.None, .position = pos };
     }
     
     // Validate file size before processing
@@ -217,15 +217,13 @@ pub const JsonValidator = struct {
     }
 };
 
-// Validation result structure
-// Edge case handlers
+// Edge case handler for graceful degradation
 pub const EdgeCaseHandler = struct {
-    // Handle empty input gracefully
+    // Handle edge cases gracefully
     pub inline fn handleEmptyInput() []const u8 {
         return "{}";
     }
     
-    // Handle whitespace-only input
     pub inline fn handleWhitespaceInput() []const u8 {
         return "{}";
     }

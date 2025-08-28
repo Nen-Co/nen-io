@@ -40,4 +40,29 @@ pub const memory_cleanup_threshold = 0.8;    // Cleanup when 80% full
 // Logging and debugging
 pub const enable_performance_logging = true;  // Enable performance logging
 pub const enable_memory_logging = true;      // Enable memory usage logging
-pub const enable_validation_logging = true;  // Enable validation logging
+pub const enable_validation_logging = true;   // Enable validation logging
+
+// Batching Configuration - Following nen-db patterns
+pub const batching = struct {
+    // File I/O batching (like your WAL sync_interval)
+    pub const file_sync_interval = 100;          // Sync every 100 operations
+    pub const file_batch_size = 8192;            // Max batch size (like your batch_max)
+    pub const file_message_size_max = 2048;      // Max message size (like your message_size_max)
+    
+    // Network batching
+    pub const network_batch_size = 100;          // Batch HTTP requests
+    pub const network_buffer_size = 8192;        // Network buffer size
+    pub const network_sync_interval = 50;        // Sync network operations every 50
+    
+    // Memory batching
+    pub const memory_batch_size = 1024;          // Memory operation batching
+    pub const memory_sync_interval = 200;        // Memory sync interval
+    
+    // Streaming batching
+    pub const stream_batch_size = 512;           // Streaming operation batching
+    pub const stream_sync_interval = 100;        // Stream sync interval
+    
+    // Performance batching
+    pub const perf_batch_size = 1000;            // Performance metric batching
+    pub const perf_sync_interval = 100;          // Performance sync interval
+};
