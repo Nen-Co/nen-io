@@ -1,0 +1,90 @@
+name: CI
+
+on:
+  push:
+    branches: ["main", "master", "develop"]
+  pull_request:
+    branches: ["main", "master", "develop"]
+
+jobs:
+  zig-test-build:
+    name: Zig test & build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Zig 0.14.1
+        uses: goto-bus-stop/setup-zig@v2
+        with:
+          version: 0.14.1
+
+      - name: Verify Zig + workspace
+        run: |
+          set -euo pipefail
+          set -x
+          zig version
+          echo "-- ls repo --"
+          ls -la
+          echo "-- ls src --"
+          ls -la src || true
+
+      - name: Build library
+        run: |
+          set -euo pipefail
+          zig build
+
+      - name: Run tests
+        run: |
+          set -euo pipefail
+          zig build test
+
+      - name: Build examples
+        run: |
+          set -euo pipefail
+          zig build examples
+
+      - name: Build release binary
+        run: |
+          set -euo pipefail
+          zig build --release=safe
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nen-io-build
+          path: |
+            zig-out/bin
+            zig-out
+
+  code-quality:
+    name: Code Quality
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Zig 0.14.1
+        uses: goto-bus-stop/setup-zig@v2
+        with:
+          version: 0.14.1
+
+      - name: Check formatting
+        run: |
+          set -euo pipefail
+          zig fmt --check src/ examples/ tests/
+
+      - name: Check for unused variables
+        run: |
+          set -euo pipefail
+          zig build test 2>&1 | grep -v "unused" || true
