@@ -98,7 +98,7 @@ pub inline fn validateJson(json_string: []const u8) !void {
 
 pub inline fn logJsonError(err: anyerror, context: []const u8, file_path: ?[]const u8) !void {
     // Simple error logging
-    const stderr = std.io.getStdErr().writer();
+    const stderr = std.Io.getStdErr().writer();
     if (file_path) |path| {
         try stderr.print("JSON Error in {s} (file: {s}): {s}\n", .{ context, path, @errorName(err) });
     } else {

@@ -16,7 +16,7 @@ pub const BatchOp = struct {
         return @This(){
             .id = id,
             .data = data,
-            .timestamp = std.time.nanoTimestamp(),
+            .timestamp = @as(u64, @intCast(std.time.nanoTimestamp())),
             .priority = priority,
         };
     }
