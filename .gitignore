@@ -33,3 +33,4 @@ Thumbs.db
 test_*.json
 perf_*.json
 mmap_*.json
+.zig-cache/

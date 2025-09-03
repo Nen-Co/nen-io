@@ -13,7 +13,7 @@ pub const JsonMemoryMapped = struct {
         if (stat.size > config.max_file_size) {
             return error.FileTooLarge;
         }
-        
+
         const mapped = try std.os.mmap(
             null,
             stat.size,
@@ -23,19 +23,19 @@ pub const JsonMemoryMapped = struct {
             0,
         );
         defer std.os.munmap(mapped);
-        
+
         return mapped;
     }
-    
+
     // Stream parse large memory-mapped file
     pub inline fn parseLargeMappedFile(file: std.fs.File, chunk_size: usize) !void {
         const stat = try file.stat();
         if (stat.size > config.max_file_size) {
             return error.FileTooLarge;
         }
-        
+
         var offset: u64 = 0;
-        
+
         while (offset < stat.size) {
             const chunk_size_actual = @min(chunk_size, stat.size - offset);
             const mapped = try std.os.mmap(
@@ -47,23 +47,23 @@ pub const JsonMemoryMapped = struct {
                 offset,
             );
             defer std.os.munmap(mapped);
-            
+
             // Process chunk here
             try processChunk(mapped);
-            
+
             offset += chunk_size_actual;
         }
     }
-    
+
     // Process a single chunk
     inline fn processChunk(chunk: []const u8) !void {
         // Simple validation of chunk
         if (chunk.len == 0) return;
-        
+
         // Check for valid JSON start/end
         var pos: usize = 0;
         while (pos < chunk.len and std.mem.isWhitespace(chunk[pos])) : (pos += 1) {}
-        
+
         if (pos < chunk.len) {
             const first_char = chunk[pos];
             if (first_char != '{' and first_char != '[') {
@@ -71,19 +71,19 @@ pub const JsonMemoryMapped = struct {
             }
         }
     }
-    
+
     // Create memory-mapped file for writing
     pub inline fn createMappedFile(file_path: []const u8, size: usize) ![]u8 {
         if (size > config.max_file_size) {
             return error.FileTooLarge;
         }
-        
+
         const file = try std.fs.cwd().createFile(file_path, .{});
         defer file.close();
-        
+
         // Extend file to desired size
         try file.setEndPos(size);
-        
+
         const mapped = try std.os.mmap(
             null,
             size,
@@ -92,19 +92,19 @@ pub const JsonMemoryMapped = struct {
             file.handle,
             0,
         );
-        
+
         return mapped;
     }
-    
+
     // Sync memory-mapped file to disk
     pub inline fn syncMappedFile(mapped: []u8) !void {
         try std.os.msync(mapped.ptr, mapped.len, std.os.MS.SYNC);
     }
-    
+
     // Get memory mapping statistics
     pub inline fn getMappingStats(file: std.fs.File) !MappingStats {
         const stat = try file.stat();
-        
+
         return MappingStats{
             .file_size = stat.size,
             .page_size = std.os.sysconf(.PAGE_SIZE) catch 4096,

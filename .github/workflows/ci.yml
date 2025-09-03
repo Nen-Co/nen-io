@@ -36,10 +36,20 @@ jobs:
           set -euo pipefail
           zig build
 
-      - name: Run tests
+      - name: Run unit tests
         run: |
           set -euo pipefail
-          zig build test || echo "Note: Tests completed with some issues, but library builds successfully"
+          zig build test-unit
+
+      - name: Run performance tests
+        run: |
+          set -euo pipefail
+          zig build test-performance
+
+      - name: Run examples
+        run: |
+          set -euo pipefail
+          zig build examples
 
       - name: Build release binary
         run: |
@@ -83,10 +93,20 @@ jobs:
           set -euo pipefail
           zig build
 
-      - name: Run tests
+      - name: Run unit tests
         run: |
           set -euo pipefail
-          zig build test || echo "Note: Tests completed with some issues, but library builds successfully"
+          zig build test-unit
+
+      - name: Run performance tests
+        run: |
+          set -euo pipefail
+          zig build test-performance
+
+      - name: Run examples
+        run: |
+          set -euo pipefail
+          zig build examples
 
       - name: Build release binary
         run: |
