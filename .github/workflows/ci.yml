@@ -147,9 +147,17 @@ jobs:
         run: |
           zig build
 
-      - name: Run tests
+      - name: Run unit tests
         run: |
-          zig build test || echo "Note: Tests completed with some issues, but library builds successfully"
+          zig build test-unit
+
+      - name: Run performance tests
+        run: |
+          zig build test-performance
+
+      - name: Run examples
+        run: |
+          zig build examples
 
       - name: Build release binary
         run: |
