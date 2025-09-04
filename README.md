@@ -1,9 +1,14 @@
 # Nen IO Library
 
-A high-performance, zero-allocation I/O library for Zig that provides streaming, file operations, and network capabilities with static memory pools.
+A high-performance, zero-allocation I/O library for Zig built with **Data-Oriented Design (DOD)** that provides streaming, file operations, and network capabilities with static memory pools.
+
+[![DOD](https://img.shields.io/badge/Architecture-Data--Oriented--Design-FF6B6B)](docs/DATA_ORIENTED_DESIGN.md)
 
 ## Features
 
+- **Data-Oriented Design**: Struct of Arrays (SoA) layout for maximum I/O performance
+- **SIMD Optimization**: Vectorized I/O operations for peak throughput
+- **Advanced Prefetching**: Hardware and software prefetching for I/O operations
 - **Zero Dynamic Allocation**: Uses static memory pools for predictable performance
 - **Inline Functions**: Critical operations are marked inline for maximum performance
 - **Streaming Support**: Efficient processing of large files and data streams

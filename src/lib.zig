@@ -8,6 +8,11 @@ pub const validation = @import("validation.zig");
 pub const config = @import("config.zig");
 pub const batching = @import("batching.zig");
 
+// Data-Oriented Design (DOD) modules
+pub const dod_config = @import("dod_config.zig");
+pub const dod_layout = @import("dod_layout.zig");
+pub const dod_prefetch = @import("dod_prefetch.zig");
+
 // Re-export main types for convenience
 pub const ValidationResult = validation.ValidationResult;
 pub const ValidationError = validation.ValidationError;
