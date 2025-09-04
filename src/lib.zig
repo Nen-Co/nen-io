@@ -148,3 +148,4 @@ pub const PERFORMANCE_TARGETS = struct {
     pub const batch_efficiency: f64 = 0.8; // Target: >80% batch utilization
     pub const memory_overhead_percent: f64 = 5.0; // Target: <5% memory overhead
 };
+pub const stdin = @import("stdin.zig");
