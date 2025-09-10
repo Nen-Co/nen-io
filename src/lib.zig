@@ -7,11 +7,15 @@ const std = @import("std");
 pub const validation = @import("validation.zig");
 pub const config = @import("config.zig");
 pub const batching = @import("batching.zig");
+pub const terminal = @import("terminal.zig");
 
 // Data-Oriented Design (DOD) modules
 pub const dod_config = @import("dod_config.zig");
 pub const dod_layout = @import("dod_layout.zig");
 pub const dod_prefetch = @import("dod_prefetch.zig");
+
+// Re-export terminal for convenience
+pub const Terminal = terminal.Terminal;
 
 // Re-export main types for convenience
 pub const ValidationResult = validation.ValidationResult;

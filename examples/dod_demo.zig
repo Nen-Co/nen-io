@@ -25,36 +25,36 @@ pub fn main() !void {
 
     // Add files using SoA layout
     const start_time = std.time.nanoTimestamp();
-    
+
     for (0..num_files) |i| {
         const file_path = try std.fmt.allocPrint(gpa.allocator(), "test_file_{d}.txt", .{i});
         defer gpa.allocator().free(file_path);
-        
+
         // Create test file
         const file = try std.fs.cwd().createFile(file_path, .{});
         defer file.close();
         try file.writeAll("Test data for file ");
         try file.writeAll(try std.fmt.allocPrint(gpa.allocator(), "{d}", .{i}));
-        
+
         _ = try io_layout.addFile(file_path, .{});
     }
-    
+
     for (0..num_buffers) |i| {
         _ = try io_layout.addBuffer(1024, @intCast(i % 4));
     }
-    
+
     for (0..num_network) |i| {
         const address = try std.fmt.allocPrint(gpa.allocator(), "192.168.1.{d}", .{i + 1});
         defer gpa.allocator().free(address);
         _ = try io_layout.addNetworkConnection(address, @intCast(8080 + i), 1);
     }
-    
+
     const end_time = std.time.nanoTimestamp();
     const duration_ns = end_time - start_time;
     const duration_ms = @as(f64, @floatFromInt(duration_ns)) / 1_000_000.0;
 
     std.debug.print("✅ Added {d} files, {d} buffers, and {d} network connections in {d:.2}ms\n", .{ num_files, num_buffers, num_network, duration_ms });
-    std.debug.print("⚡ Performance: {d:.0} operations/second\n\n", .{ @as(f64, @floatFromInt(num_files + num_buffers + num_network)) / (duration_ms / 1000.0) });
+    std.debug.print("⚡ Performance: {d:.0} operations/second\n\n", .{@as(f64, @floatFromInt(num_files + num_buffers + num_network)) / (duration_ms / 1000.0)});
 
     // Demo 2: SIMD-Optimized I/O Operations
     std.debug.print("🔍 Demo 2: SIMD-Optimized I/O Operations\n", .{});
@@ -66,7 +66,7 @@ pub fn main() !void {
     }
 
     var read_data: [1024]u8 = undefined;
-    
+
     const simd_start = std.time.nanoTimestamp();
     const bytes_read = try io_layout.readFilesSIMD(&file_indices, &read_data);
     const simd_end = std.time.nanoTimestamp();
@@ -74,29 +74,29 @@ pub fn main() !void {
     const simd_duration_ms = @as(f64, @floatFromInt(simd_duration_ns)) / 1_000_000.0;
 
     std.debug.print("✅ Read {d} bytes using SIMD in {d:.3}ms\n", .{ bytes_read, simd_duration_ms });
-    std.debug.print("⚡ SIMD I/O performance: {d:.0} bytes/second\n\n", .{ @as(f64, @floatFromInt(bytes_read)) / (simd_duration_ms / 1000.0) });
+    std.debug.print("⚡ SIMD I/O performance: {d:.0} bytes/second\n\n", .{@as(f64, @floatFromInt(bytes_read)) / (simd_duration_ms / 1000.0)});
 
     // Demo 3: Prefetching for I/O Operations
     std.debug.print("🎯 Demo 3: I/O Prefetching System\n", .{});
     std.debug.print("---------------------------------\n", .{});
 
     const prefetch_start = std.time.nanoTimestamp();
-    
+
     // Prefetch file data
     for (0..num_files) |i| {
         prefetch_system.prefetchFileData(&io_layout, @intCast(i), .read_ahead);
     }
-    
+
     // Prefetch network data
     for (0..num_network) |i| {
         prefetch_system.prefetchNetworkData(&io_layout, @intCast(i), .network_stream);
     }
-    
+
     // Prefetch buffer data
     for (0..num_buffers) |i| {
         prefetch_system.prefetchBufferData(&io_layout, @intCast(i), .write_behind);
     }
-    
+
     const prefetch_end = std.time.nanoTimestamp();
     const prefetch_duration_ns = prefetch_end - prefetch_start;
     const prefetch_duration_ms = @as(f64, @floatFromInt(prefetch_duration_ns)) / 1_000_000.0;
@@ -126,28 +126,12 @@ pub fn main() !void {
 
     const stats = io_layout.getStats();
     const prefetch_stats = prefetch_system.getStats();
-    
+
     std.debug.print("📊 I/O Layout Statistics:\n", .{});
-    std.debug.print("   Files: {d}/{d} ({d:.1}% utilization)\n", .{ 
-        stats.file_count, 
-        stats.file_capacity, 
-        stats.getFileUtilization() * 100.0 
-    });
-    std.debug.print("   Buffers: {d}/{d} ({d:.1}% utilization)\n", .{ 
-        stats.buffer_count, 
-        stats.buffer_capacity, 
-        stats.getBufferUtilization() * 100.0 
-    });
-    std.debug.print("   Network: {d}/{d} ({d:.1}% utilization)\n", .{ 
-        stats.network_count, 
-        stats.network_capacity, 
-        stats.getNetworkUtilization() * 100.0 
-    });
-    std.debug.print("   Batches: {d}/{d} ({d:.1}% utilization)\n", .{ 
-        stats.batch_count, 
-        stats.batch_capacity, 
-        stats.getBatchUtilization() * 100.0 
-    });
+    std.debug.print("   Files: {d}/{d} ({d:.1}% utilization)\n", .{ stats.file_count, stats.file_capacity, stats.getFileUtilization() * 100.0 });
+    std.debug.print("   Buffers: {d}/{d} ({d:.1}% utilization)\n", .{ stats.buffer_count, stats.buffer_capacity, stats.getBufferUtilization() * 100.0 });
+    std.debug.print("   Network: {d}/{d} ({d:.1}% utilization)\n", .{ stats.network_count, stats.network_capacity, stats.getNetworkUtilization() * 100.0 });
+    std.debug.print("   Batches: {d}/{d} ({d:.1}% utilization)\n", .{ stats.batch_count, stats.batch_capacity, stats.getBatchUtilization() * 100.0 });
     std.debug.print("   Overall utilization: {d:.1}%\n", .{stats.getOverallUtilization() * 100.0});
 
     std.debug.print("\n📊 Prefetch Statistics:\n", .{});
