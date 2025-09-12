@@ -19,7 +19,7 @@ pub const JsonPerformance = struct {
 
         if (!@import("builtin").is_test) {
             // Use stderr for performance logging
-            const stderr = std.Io.getStdErr().writer();
+            const stderr = std.io.getStdErr().writer();
             try stderr.print("JSON {s} completed in {d}ms\n", .{ operation, duration_ms });
         }
     }
@@ -39,7 +39,7 @@ pub const JsonPerformance = struct {
         const ops_per_second = @as(f64, @floatFromInt(iterations)) / (@as(f64, @floatFromInt(total_time_ns)) / 1_000_000_000.0);
 
         if (!@import("builtin").is_test) {
-            const stderr = std.Io.getStdErr().writer();
+            const stderr = std.io.getStdErr().writer();
             try stderr.print("JSON {s} benchmark: {d} ops/sec (avg {d}ns)\n", .{ operation, @as(u64, @intFromFloat(ops_per_second)), avg_time_ns });
         }
 
@@ -116,7 +116,7 @@ pub const JsonPerformance = struct {
         }
 
         pub inline fn printResults(self: *const Self) !void {
-            const stderr = std.Io.getStdErr().writer();
+            const stderr = std.io.getStdErr().writer();
             try stderr.print("Performance Profile Results:\n", .{});
 
             for (self.checkpoints.items, 0..) |checkpoint_item, i| {
@@ -192,7 +192,7 @@ pub const JsonPerformance = struct {
         }
 
         pub inline fn printSummary(self: *const Self) !void {
-            const stderr = std.Io.getStdErr().writer();
+            const stderr = std.io.getStdErr().writer();
             try stderr.print("Performance Metrics Summary:\n", .{});
 
             var iterator = self.metrics.iterator();

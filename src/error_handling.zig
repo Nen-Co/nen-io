@@ -9,7 +9,7 @@ pub const JsonErrorHandler = struct {
     // Log JSON parsing errors with context
     pub inline fn logError(err: anyerror, context: []const u8, file_path: ?[]const u8) !void {
         if (!@import("builtin").is_test) {
-            const stderr = std.Io.getStdErr().writer();
+            const stderr = std.io.getStdErr().writer();
 
             try stderr.print("JSON Error in {s}: {s}", .{ context, @errorName(err) });
 
@@ -290,7 +290,7 @@ pub const JsonErrorHandler = struct {
         }
 
         pub inline fn printSummary(self: *const Self) !void {
-            const stderr = std.Io.getStdErr().writer();
+            const stderr = std.io.getStdErr().writer();
             try stderr.print("Error Statistics Summary:\n", .{});
             try stderr.print("Total Errors: {d}\n", .{self.total_errors});
 
