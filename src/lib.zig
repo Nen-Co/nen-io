@@ -8,6 +8,7 @@ pub const validation = @import("validation.zig");
 pub const config = @import("config.zig");
 pub const batching = @import("batching.zig");
 pub const terminal = @import("terminal.zig");
+pub const network = @import("network.zig");
 
 // Data-Oriented Design (DOD) modules
 pub const dod_config = @import("dod_config.zig");
@@ -17,6 +18,9 @@ pub const simd_batch = @import("simd_batch.zig");
 
 // Re-export terminal for convenience
 pub const Terminal = terminal.Terminal;
+
+// Re-export network types
+pub const NetworkSocket = network.NetworkSocket;
 
 // Re-export main types for convenience
 pub const ValidationResult = validation.ValidationResult;

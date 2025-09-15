@@ -28,12 +28,7 @@ pub const SIMDBatchProcessor = struct {
     }
 
     /// Process a batch of file operations using SIMD
-    pub inline fn process_file_batch(
-        self: *Self, 
-        layout: *dod_layout.DODIOLayout,
-        start_index: u32,
-        count: u32
-    ) void {
+    pub inline fn process_file_batch(self: *Self, layout: *dod_layout.DODIOLayout, start_index: u32, count: u32) void {
         assert(count <= SIMD_WIDTH);
         assert(start_index + count <= dod_config.DOD_CONSTANTS.MAX_FILE_HANDLES);
 
@@ -62,12 +57,7 @@ pub const SIMDBatchProcessor = struct {
     }
 
     /// Process a batch of network operations using SIMD
-    pub inline fn process_network_batch(
-        self: *Self,
-        layout: *dod_layout.DODIOLayout,
-        start_index: u32,
-        count: u32
-    ) void {
+    pub inline fn process_network_batch(self: *Self, layout: *dod_layout.DODIOLayout, start_index: u32, count: u32) void {
         assert(count <= SIMD_WIDTH);
         assert(start_index + count <= dod_config.DOD_CONSTANTS.MAX_NETWORK_CONNECTIONS);
 
@@ -96,12 +86,7 @@ pub const SIMDBatchProcessor = struct {
     }
 
     /// Process a batch of buffer operations using SIMD
-    pub inline fn process_buffer_batch(
-        self: *Self,
-        layout: *dod_layout.DODIOLayout,
-        start_index: u32,
-        count: u32
-    ) void {
+    pub inline fn process_buffer_batch(self: *Self, layout: *dod_layout.DODIOLayout, start_index: u32, count: u32) void {
         assert(count <= SIMD_WIDTH);
         assert(start_index + count <= dod_config.DOD_CONSTANTS.MAX_BUFFERS);
 
@@ -137,7 +122,7 @@ pub const SIMDBatchProcessor = struct {
             if (self.batch_sizes[i] > 0 and self.batch_active[i]) {
                 // Update position based on size
                 self.batch_positions[i] = self.batch_positions[i] + self.batch_sizes[i];
-                
+
                 // Update type based on operation
                 if (self.batch_types[i] > 0) {
                     self.batch_types[i] = self.batch_types[i] + 1;
@@ -161,7 +146,7 @@ pub const SIMDBatchProcessor = struct {
     pub inline fn reset(self: *Self) void {
         self.operations_processed = 0;
         self.batches_completed = 0;
-        
+
         // Clear batch arrays
         @memset(&self.batch_ids, 0);
         @memset(&self.batch_sizes, 0);
@@ -180,14 +165,9 @@ pub inline fn get_global_processor() *SIMDBatchProcessor {
 }
 
 /// Process multiple batches across different I/O types
-pub inline fn process_mixed_batches(
-    layout: *dod_layout.DODIOLayout,
-    file_count: u32,
-    network_count: u32,
-    buffer_count: u32
-) void {
+pub inline fn process_mixed_batches(layout: *dod_layout.DODIOLayout, file_count: u32, network_count: u32, buffer_count: u32) void {
     var processor = get_global_processor();
-    
+
     // Process file batches
     var file_processed: u32 = 0;
     while (file_processed < file_count) {
@@ -195,7 +175,7 @@ pub inline fn process_mixed_batches(
         processor.process_file_batch(layout, file_processed, batch_size);
         file_processed += batch_size;
     }
-    
+
     // Process network batches
     var network_processed: u32 = 0;
     while (network_processed < network_count) {
@@ -203,7 +183,7 @@ pub inline fn process_mixed_batches(
         processor.process_network_batch(layout, network_processed, batch_size);
         network_processed += batch_size;
     }
-    
+
     // Process buffer batches
     var buffer_processed: u32 = 0;
     while (buffer_processed < buffer_count) {

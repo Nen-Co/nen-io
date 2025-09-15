@@ -13,6 +13,7 @@ A high-performance, zero-allocation I/O library for Zig built with **Data-Orient
 - **Inline Functions**: Critical operations are marked inline for maximum performance
 - **Streaming Support**: Efficient processing of large files and data streams
 - **File Operations**: Static memory file reading, writing, and validation
+- **Network Operations**: Low-level socket operations with cross-platform support
 - **Network Support**: HTTP JSON parsing and response creation
 - **Memory Mapping**: High-performance file parsing with memory mapping
 - **Performance Monitoring**: Built-in benchmarking and performance tracking
@@ -81,6 +82,41 @@ std.debug.print("Average time: {d}ns\n", .{results.avg_time_ns});
 ```zig
 const io = @import("nen-io");
 
+// Create TCP socket
+var socket = try io.NetworkSocket.createTcp();
+
+// Configure socket options
+try socket.configure(.{
+    .reuse_addr = true,
+    .tcp_nodelay = true,
+    .non_blocking = true,
+    .keep_alive = true,
+});
+
+// Bind to address
+const address = try io.network.parseAddress("0.0.0.0", 8080);
+try socket.bind(address);
+try socket.listen(128);
+
+// Accept connections
+const result = try socket.accept();
+const client_socket = result.socket;
+const client_addr = result.address;
+
+// Send/receive data
+_ = try client_socket.send("Hello, Client!");
+var buffer: [1024]u8 = undefined;
+const bytes_received = try client_socket.receive(&buffer);
+
+// Close socket
+client_socket.close();
+```
+
+### HTTP JSON Operations
+
+```zig
+const io = @import("nen-io");
+
 // Parse HTTP response
 const value = try io.JsonNetwork.parseHttpResponse(http_response);
 
@@ -92,9 +128,10 @@ const response = try io.JsonNetwork.createHttpResponse(json_value, 200);
 
 This library is designed to work seamlessly with other Nen libraries:
 
+- **nen-net**: Network protocols (HTTP, TCP, WebSocket) - uses nen-io for low-level operations
 - **nen-json**: JSON parsing and manipulation
-- **nendb**: Database operations
-- **nenflow**: Workflow processing
+- **nen-core**: Data-oriented design patterns and batching
+- **nen-db**: Database operations
 
 ## Performance Targets
 
