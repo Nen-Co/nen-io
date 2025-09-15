@@ -66,6 +66,21 @@ pub fn build(b: *std.Build) void {
     const examples_step = b.step("examples", "Run examples");
     examples_step.dependOn(&run_examples.step);
 
+    // DOD Demo
+    const dod_demo = b.addExecutable(.{
+        .name = "dod-demo",
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("examples/dod_demo.zig"),
+            .target = target,
+            .optimize = optimize,
+        }),
+    });
+    dod_demo.root_module.addImport("nen-io", lib);
+
+    const run_dod_demo = b.addRunArtifact(dod_demo);
+    const dod_demo_step = b.step("dod-demo", "Run Data-Oriented Design demo");
+    dod_demo_step.dependOn(&run_dod_demo.step);
+
     // All tests
     const all_tests = b.step("test-all", "Run all tests");
     all_tests.dependOn(&run_unit_tests.step);

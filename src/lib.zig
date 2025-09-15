@@ -7,6 +7,20 @@ const std = @import("std");
 pub const validation = @import("validation.zig");
 pub const config = @import("config.zig");
 pub const batching = @import("batching.zig");
+pub const terminal = @import("terminal.zig");
+pub const network = @import("network.zig");
+
+// Data-Oriented Design (DOD) modules
+pub const dod_config = @import("dod_config.zig");
+pub const dod_layout = @import("dod_layout.zig");
+pub const dod_prefetch = @import("dod_prefetch.zig");
+pub const simd_batch = @import("simd_batch.zig");
+
+// Re-export terminal for convenience
+pub const Terminal = terminal.Terminal;
+
+// Re-export network types
+pub const NetworkSocket = network.NetworkSocket;
 
 // Re-export main types for convenience
 pub const ValidationResult = validation.ValidationResult;
@@ -22,6 +36,11 @@ pub const StreamBatch = batching.StreamBatch;
 pub const PerformanceBatch = batching.PerformanceBatch;
 pub const BatchStats = batching.BatchStats;
 pub const BatchOp = batching.BatchOp;
+
+// Re-export SIMD batch processor
+pub const SIMDBatchProcessor = simd_batch.SIMDBatchProcessor;
+pub const get_global_processor = simd_batch.get_global_processor;
+pub const process_mixed_batches = simd_batch.process_mixed_batches;
 
 // Configuration constants
 pub const default_buffer_size = config.default_buffer_size;
@@ -98,7 +117,7 @@ pub inline fn validateJson(json_string: []const u8) !void {
 
 pub inline fn logJsonError(err: anyerror, context: []const u8, file_path: ?[]const u8) !void {
     // Simple error logging
-    const stderr = std.Io.getStdErr().writer();
+    const stderr = std.io.getStdErr().writer();
     if (file_path) |path| {
         try stderr.print("JSON Error in {s} (file: {s}): {s}\n", .{ context, path, @errorName(err) });
     } else {
@@ -148,3 +167,4 @@ pub const PERFORMANCE_TARGETS = struct {
     pub const batch_efficiency: f64 = 0.8; // Target: >80% batch utilization
     pub const memory_overhead_percent: f64 = 5.0; // Target: <5% memory overhead
 };
+pub const stdin = @import("stdin.zig");
