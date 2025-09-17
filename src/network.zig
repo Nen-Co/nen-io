@@ -34,13 +34,30 @@ pub const NetworkSocket = struct {
             try posix.setsockopt(self.fd, posix.SOL.SOCKET, posix.SO.KEEPALIVE, &std.mem.toBytes(@as(c_int, 1)));
         }
         if (options.non_blocking) {
-            const flags = try posix.fcntl(self.fd, posix.F.GETFL, 0);
-            const nonblock_flag = switch (builtin.os.tag) {
-                .linux => @as(u32, 0x800),
-                .macos => @as(u32, 0x4),
-                else => @as(u32, 0x4),
-            };
-            _ = try posix.fcntl(self.fd, posix.F.SETFL, flags | nonblock_flag);
+            switch (builtin.os.tag) {
+                .windows => {
+                    // Windows uses ioctlsocket for non-blocking mode
+                    var u_long = @as(u32, 1);
+                    const result = std.os.windows.ws2_32.ioctlsocket(self.fd, std.os.windows.ws2_32.FIONBIO, &u_long);
+                    if (result != 0) {
+                        return error.SocketError;
+                    }
+                },
+                .linux, .macos => {
+                    const flags = try posix.fcntl(self.fd, posix.F.GETFL, 0);
+                    const nonblock_flag = switch (builtin.os.tag) {
+                        .linux => @as(u32, 0x800),
+                        .macos => @as(u32, 0x4),
+                        else => @as(u32, 0x4),
+                    };
+                    _ = try posix.fcntl(self.fd, posix.F.SETFL, flags | nonblock_flag);
+                },
+                else => {
+                    // For other platforms, try the standard approach
+                    const flags = try posix.fcntl(self.fd, posix.F.GETFL, 0);
+                    _ = try posix.fcntl(self.fd, posix.F.SETFL, flags | 0x4);
+                },
+            }
         }
     }
 
@@ -52,12 +69,12 @@ pub const NetworkSocket = struct {
         try posix.listen(self.fd, @intCast(backlog));
     }
 
-    pub inline fn accept(self: *@This()) !struct { socket: @This(), address: net.Address } {
+    pub inline fn accept(self: *@This()) !struct { socket: NetworkSocket, address: net.Address } {
         var client_addr: net.Address = undefined;
         var addr_len: posix.socklen_t = @sizeOf(net.Address);
         const client_fd = try posix.accept(self.fd, &client_addr.any, &addr_len, posix.SOCK.CLOEXEC);
 
-        var client_socket = @This(){
+        var client_socket = NetworkSocket{
             .fd = client_fd,
             .is_connected = true,
         };
